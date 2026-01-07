@@ -1,0 +1,184 @@
+---
+alwaysApply: true
+---
+
+
+You are an expert in TypeScript, React Native, Expo, and Mobile UI development.
+
+CRITICAL CONTEXT:
+- This is a minimal Expo React Native app
+- NO EAS Build (using local builds only)
+- Working collaboratively with Claude Opus 4.5
+- Focus on simplicity and maintainability
+
+Code Style and Structure
+- Write concise, technical TypeScript code with accurate examples
+- Use functional and declarative programming patterns; avoid classes
+- Prefer iteration and modularization over code duplication
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError)
+- Structure files: exported component, subcomponents, helpers, static content, types
+- Keep components small (< 200 lines) and focused on single responsibility
+
+Naming Conventions
+- Use lowercase with dashes for directories (e.g., components/auth-wizard)
+- Favor named exports for components
+- Use PascalCase for component files (e.g., Button.tsx)
+- Use camelCase for utility files (e.g., formatDate.ts)
+
+TypeScript Usage
+- Use TypeScript for all code; prefer interfaces over types
+- Avoid enums; use const objects with 'as const' assertion instead
+- Use functional components with TypeScript interfaces
+- Enable strict mode in tsconfig.json
+- Define prop interfaces inline for simple components
+- Create separate type files for complex shared types
+
+Syntax and Formatting
+- Use the "function" keyword for pure functions
+- Use arrow functions for callbacks and inline functions
+- Avoid unnecessary curly braces in conditionals
+- Use declarative JSX
+- Use Prettier for consistent code formatting
+- Max line length: 100 characters
+
+UI and Styling
+- Use Expo's built-in components first (View, Text, Pressable, etc.)
+- Implement responsive design with Flexbox
+- Use StyleSheet.create() for performance
+- Implement dark mode support using useColorScheme
+- Ensure accessibility: accessibilityLabel, accessibilityRole, accessibilityHint
+- For animations: use react-native-reanimated (NOT Animated API)
+
+Safe Area Management
+- ALWAYS use SafeAreaProvider at app root
+- ALWAYS wrap screens with SafeAreaView
+- Use SafeAreaScrollView for scrollable content
+- Never hardcode top/bottom padding for safe areas
+
+Performance Optimization
+- Minimize useState and useEffect usage
+- Use useCallback for event handlers passed as props
+- Use useMemo for expensive computations
+- Use React.memo for components that render often with same props
+- Avoid inline object/array creation in render
+- Use FlatList/SectionList for long lists (never ScrollView with map)
+
+Navigation (expo-router)
+- Use expo-router file-based routing
+- Structure: app/ directory for routes
+- Use (tabs)/ for tab navigation
+- Use [id]/ for dynamic routes
+- Use _layout.tsx for nested layouts
+- Prefer <Link> over router.push() when possible
+
+State Management
+- Use Zustand for global state (lightweight, simple)
+- Avoid Redux unless absolutely necessary
+- Use React Context only for theme/localization
+- Keep store files small and focused
+- Use shallow comparison for Zustand selectors
+
+Error Handling
+- Use try-catch for async operations
+- Implement early returns for error conditions
+- Use optional chaining (?.) and nullish coalescing (??)
+- Show user-friendly error messages
+- Log errors to console in development
+
+Local Build Commands (NO EAS)
+- iOS: npx expo run:ios
+- Android: npx expo run:android
+- Start: npx expo start
+- Clear cache: npx expo start -c
+
+Project Structure
+```
+app/
+├── (tabs)/          # Tab screens
+├── _layout.tsx      # Root layout
+└── +not-found.tsx   # 404 page
+components/
+├── ui/              # Reusable UI components
+└── shared/          # Shared business components
+hooks/               # Custom hooks
+store/               # Zustand stores
+utils/               # Helper functions
+types/               # Shared TypeScript types
+constants/           # App constants
+```
+
+File Template Examples
+- Screen: SafeAreaView + StyleSheet + TypeScript interface
+- Component: Named export + Props interface + Memoization if needed
+- Hook: Custom hook with proper TypeScript return type
+- Store: Zustand create with TypeScript interface
+
+Dependencies to Prefer
+- State: zustand
+- Navigation: expo-router
+- UI: react-native built-ins
+- Animations: react-native-reanimated
+- Gestures: react-native-gesture-handler
+- Forms: react-hook-form + zod
+- Safe Area: react-native-safe-area-context
+
+Dependencies to AVOID
+- redux (too complex for minimal apps)
+- expo-application (if not needed)
+- styled-components (adds bundle size)
+- moment.js (use date-fns or native Date)
+
+Code Quality Rules
+- No console.log in production code (use __DEV__ check)
+- No any types (use unknown and type guards)
+- No magic numbers (use constants)
+- No prop drilling > 2 levels (use context/store)
+- No useEffect for derived state (use useMemo)
+
+Accessibility Standards
+- All interactive elements need accessibilityRole
+- All images need accessibilityLabel
+- Minimum touch target: 44x44 points
+- Support for screen readers
+- Sufficient color contrast (WCAG AA)
+
+Testing Strategy
+- Focus on critical user flows
+- Test custom hooks with @testing-library/react-hooks
+- Test utils with Jest
+- Manual testing on both iOS and Android
+- Use Expo Go for quick testing
+
+Common Patterns to Use
+1. Custom hooks for shared logic
+2. Compound components for complex UI
+3. Render props for maximum flexibility
+4. Higher-order functions for utilities
+5. Early returns for cleaner code
+
+Common Anti-Patterns to AVOID
+1. Prop drilling
+2. God components (> 300 lines)
+3. Inline styles in JSX
+4. Mutating state directly
+5. Using index as key in lists
+6. Not cleaning up useEffect
+7. Over-optimizing prematurely
+
+When Working with Claude Opus 4.5
+- Ask Claude for: Architecture decisions, complex algorithms, debugging strategies
+- Use Cursor for: Quick edits, refactoring, boilerplate generation
+- Reference @workspace for context
+- Reference @file for specific file context
+- Use Cmd+K for inline AI edits
+- Use Cmd+L for AI chat
+
+Development Workflow
+1. Plan feature with Claude (architecture, types, components)
+2. Generate boilerplate with Cursor
+3. Implement logic with Cursor autocomplete
+4. Refine with Claude feedback
+5. Test manually on Expo Go
+6. Refactor with Cursor
+
+Remember: Keep it simple, maintainable, and performant. Minimal doesn't mean poorly structured.
