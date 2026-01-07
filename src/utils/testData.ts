@@ -41,12 +41,15 @@ export const generateTestCompletions = (): Completion[] => {
   // Son 14 gün için rastgele completions oluştur
   for (let i = 0; i < 14; i++) {
     const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    const dateStr = getTodayString();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     
     // Habit 1 (Su içme) - %80 tamamlama oranı
     if (Math.random() > 0.2 || i === 0) {
       completions.push({
-        id: `comp-1-${i}`,
+        id: `comp-1-${dateStr}`,
         habitId: '1',
         date: dateStr,
         completed: true,
@@ -57,7 +60,7 @@ export const generateTestCompletions = (): Completion[] => {
     // Habit 2 (Koşu) - %60 tamamlama oranı (son 7 gün)
     if (i < 7 && Math.random() > 0.4) {
       completions.push({
-        id: `comp-2-${i}`,
+        id: `comp-2-${dateStr}`,
         habitId: '2',
         date: dateStr,
         completed: true,
@@ -68,7 +71,7 @@ export const generateTestCompletions = (): Completion[] => {
     // Habit 3 (Kitap) - %50 tamamlama oranı (son 3 gün)
     if (i < 3 && Math.random() > 0.5) {
       completions.push({
-        id: `comp-3-${i}`,
+        id: `comp-3-${dateStr}`,
         habitId: '3',
         date: dateStr,
         completed: true,

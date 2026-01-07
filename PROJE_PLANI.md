@@ -417,13 +417,13 @@ myapp/
 - ✅ Haftalık mini grid görünümü
 - ✅ Streak hesaplama sistemi
 - ✅ Günlük check-in/toggle işlevi
-- ✅ Test verileri (testData.ts)
+- ✅ Test verileri (testData.ts) - Otomatik yükleme
 - ✅ Tarih utility fonksiyonları
-- ✅ Temel UI komponentleri (Button, Card, Input, FAB)
+- ✅ Temel UI komponentleri (Button, Card, Input, FAB, Modal)
 - ✅ Placeholder ekranlar (Stats, Calendar, Settings)
+- ✅ Alışkanlık ekleme modal'ı (AddHabitModal) - İkon ve renk seçimi ile
 
 ### 🔄 Devam Eden İşler
-- 🔄 Alışkanlık ekleme modal'ı
 - 🔄 İstatistik ekranı geliştirme
 - 🔄 Takvim ekranı interaktif hale getirme
 
@@ -452,12 +452,13 @@ myapp/
 - [x] Basit daily check-in sistemi
 - [x] Streak hesaplama algoritması
 - [x] Haftalık mini grid görünümü
-- [ ] Temel animasyonlar
-- [ ] Alışkanlık ekleme modal'ı
+- [x] Alışkanlık ekleme modal'ı (AddHabitModal)
+- [x] Test verileri otomatik yükleme
+- [ ] Temel animasyonlar (check animasyonu, geçişler)
 
-**Çıktı:** Kullanıcı alışkanlık ekleyip günlük takip edebilir.
+**Çıktı:** Kullanıcı alışkanlık ekleyip günlük takip edebilir. ✅
 
-**Tamamlanma Durumu:** %85
+**Tamamlanma Durumu:** %95
 
 ---
 
@@ -857,7 +858,26 @@ Bu proje planı ile:
 
 ## 🔧 Teknik Notlar ve Çözülen Sorunlar
 
-### 7 Ocak 2025
+### 7 Ocak 2025 - Saat 21:00
+**Eklenen Özellikler:**
+1. ✅ **Alışkanlık Ekleme Modal'ı** - Tam işlevsel modal ile kullanıcılar artık alışkanlık ekleyebilir
+2. ✅ **Test Verileri Otomatik Yükleme** - İlk açılışta 3 örnek alışkanlık ve geçmiş tamamlamalar otomatik yüklenir
+3. ✅ **Test Verilerindeki Tarih Hatası Düzeltildi** - Tüm tarihler doğru şekilde geçmiş günlere ayarlandı
+
+**Yeni Dosyalar:**
+- `src/components/ui/Modal.tsx` - Genel modal component
+- `src/components/habit/AddHabitModal.tsx` - Alışkanlık ekleme modal'ı (ikon + renk seçimi)
+
+**Güncellemeler:**
+- `src/store/habitStore.ts` - İlk açılışta test verilerini otomatik yükleme
+- `src/utils/testData.ts` - Tarih hesaplama düzeltmeleri
+- `src/screens/HomeScreen.tsx` - AddHabitModal entegrasyonu
+
+**Durum:** ✅ Phase 1 MVP %95 Tamamlandı
+
+---
+
+### 7 Ocak 2025 - Saat 19:00
 **Sorun:** "Maximum update depth exceeded" hatası  
 **Neden:** `HomeScreen.tsx` içinde `useHabitStore` selector'ında `getAllHabitsWithCompletions()` fonksiyonu her render'da yeni bir array döndürüyordu, bu da sonsuz render döngüsü yaratıyordu.
 

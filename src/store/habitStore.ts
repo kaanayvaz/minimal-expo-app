@@ -3,6 +3,7 @@ import { Habit, Completion, HabitWithCompletions } from '../types/habit.types';
 import { saveHabits, loadHabits, saveCompletions, loadCompletions } from '../services/storageService';
 import { calculateStreak } from '../utils/streakCalculator';
 import { getTodayString } from '../utils/dateUtils';
+import { generateTestHabits, generateTestCompletions } from '../utils/testData';
 
 interface HabitStore {
   habits: Habit[];
@@ -28,7 +29,22 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const [habits, completions] = await Promise.all([loadHabits(), loadCompletions()]);
-      set({ habits, completions, isLoading: false });
+      
+      // Eğer hiç veri yoksa, test verilerini yükle
+      if (habits.length === 0 && completions.length === 0) {
+        const testHabits = generateTestHabits();
+        const testCompletions = generateTestCompletions();
+        
+        await Promise.all([
+          saveHabits(testHabits),
+          saveCompletions(testCompletions)
+        ]);
+        
+        set({ habits: testHabits, completions: testCompletions, isLoading: false });
+        console.log('✅ Test verileri yüklendi:', testHabits.length, 'alışkanlık,', testCompletions.length, 'tamamlama');
+      } else {
+        set({ habits, completions, isLoading: false });
+      }
     } catch (error) {
       console.error('Error loading data:', error);
       set({ isLoading: false });

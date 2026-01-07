@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TabScreenProps } from '../types/navigation.types';
-import { COLORS } from '../constants/colors';
-import { SPACING } from '../constants/spacing';
-import { TYPOGRAPHY } from '../constants/typography';
+import { styles } from './CalendarScreen.styles';
 
 export default function CalendarScreen({ navigation }: TabScreenProps<'Calendar'>) {
   return (
@@ -27,43 +26,3 @@ export default function CalendarScreen({ navigation }: TabScreenProps<'Calendar'
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background.secondary,
-  },
-  header: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.lg,
-    backgroundColor: COLORS.white,
-  },
-  title: {
-    ...TYPOGRAPHY.h2,
-    color: COLORS.text.primary,
-  },
-  content: {
-    flexGrow: 1,
-  },
-  placeholderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: SPACING.xl,
-  },
-  placeholderIcon: {
-    fontSize: 64,
-    marginBottom: SPACING.md,
-  },
-  placeholderText: {
-    ...TYPOGRAPHY.h3,
-    color: COLORS.text.primary,
-    marginBottom: SPACING.sm,
-    textAlign: 'center',
-  },
-  placeholderSubtext: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.text.secondary,
-    textAlign: 'center',
-  },
-});
