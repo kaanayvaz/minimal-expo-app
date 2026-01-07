@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import AppNavigator from './src/navigation/AppNavigator';
+import Onboarding from './src/components/ui/Onboarding';
 import { useHabitStore } from './src/store/habitStore';
 import { useSettingsStore } from './src/store/settingsStore';
 import { COLORS } from './src/constants/colors';
@@ -15,6 +17,8 @@ export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
   const loadHabits = useHabitStore((state) => state.loadData);
   const loadSettings = useSettingsStore((state) => state.loadSettings);
+  const onboardingCompleted = useSettingsStore((state) => state.onboardingCompleted);
+  const setOnboardingCompleted = useSettingsStore((state) => state.setOnboardingCompleted);
 
   // Font yükleme
   const [fontsLoaded] = useFonts({
@@ -54,10 +58,21 @@ export default function App() {
     );
   }
 
+  // Onboarding tamamlanmamışsa göster
+  if (!onboardingCompleted) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Onboarding onComplete={setOnboardingCompleted} />
+      </GestureHandlerRootView>
+    );
+  }
+
   return (
-    <SafeAreaProvider>
-      <AppNavigator />
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AppNavigator />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

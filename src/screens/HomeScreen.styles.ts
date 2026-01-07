@@ -14,6 +14,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.background.secondary,
   },
+  loadingContainer: {
+    flex: 1,
+  },
   header: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
@@ -55,8 +58,8 @@ export const styles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: '300',
   },
-  scrollView: {
-    flex: 1,
+  flatListContent: {
+    paddingBottom: SPACING.lg,
   },
   statsCard: {
     flexDirection: 'row',
@@ -221,5 +224,18 @@ export const styles = StyleSheet.create({
     ...TYPOGRAPHY.body,
     color: COLORS.text.secondary,
     textAlign: 'center',
+  },
+  swipeAction: {
+    width: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+    marginRight: SPACING.lg,
+    borderRadius: 16,
+  },
+  swipeActionText: {
+    color: COLORS.white,
+    fontSize: 32,
+    fontWeight: 'bold',
   },
 });

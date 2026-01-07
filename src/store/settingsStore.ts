@@ -9,6 +9,7 @@ interface SettingsStore extends UserSettings {
   loadSettings: () => Promise<void>;
   updateSettings: (settings: Partial<UserSettings>) => Promise<void>;
   togglePremium: (isPremium: boolean) => Promise<void>;
+  setOnboardingCompleted: () => Promise<void>;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -19,6 +20,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   eveningNotificationTime: '20:00',
   weekStartsOn: 1, // Pazartesi
   isPremium: false,
+  onboardingCompleted: false,
 };
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
@@ -65,6 +67,17 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       ...settings,
       isPremium,
       premiumExpiryDate: isPremium ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) : undefined,
+    };
+    
+    set(updatedSettings);
+    await saveSettings(updatedSettings);
+  },
+
+  setOnboardingCompleted: async () => {
+    const settings = get();
+    const updatedSettings: UserSettings = {
+      ...settings,
+      onboardingCompleted: true,
     };
     
     set(updatedSettings);

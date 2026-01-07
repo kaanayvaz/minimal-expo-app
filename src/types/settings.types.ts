@@ -7,4 +7,5 @@ export interface UserSettings {
   weekStartsOn: 0 | 1; // 0 = Pazar, 1 = Pazartesi
   isPremium: boolean;
   premiumExpiryDate?: Date;
+  onboardingCompleted?: boolean;
 }

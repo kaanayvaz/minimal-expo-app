@@ -1,17 +1,21 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   ActivityIndicator,
   StatusBar,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Swipeable } from 'react-native-gesture-handler';
+import * as Haptics from 'expo-haptics';
 import { TabScreenProps } from '../types/navigation.types';
 import { useHabitStore } from '../store/habitStore';
 import AddHabitModal from '../components/habit/AddHabitModal';
+import { HabitCardSkeleton, StatsCardSkeleton } from '../components/ui/SkeletonLoader';
 import { COLORS } from '../constants/colors';
 import { formatDate } from '../utils/dateUtils';
 import { calculateStreak } from '../utils/streakCalculator';
@@ -44,17 +48,22 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
   const monthlyStats = useMemo(() => {
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const todayEndOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     
+    // Bugüne kadar olan gün sayısı (ayın başından bugüne kadar)
+    const daysSoFar = now.getDate();
+    
+    // Bu aydaki tamamlamaları filtrele (bugüne kadar)
     const monthlyCompletions = completions.filter(c => {
       const compDate = new Date(c.date);
-      return compDate >= firstDayOfMonth && c.completed;
+      return compDate >= firstDayOfMonth && compDate <= todayEndOfDay && c.completed;
     });
     
-    const totalPossible = habits.length * daysInMonth;
+    // Toplam olası tamamlama = alışkanlık sayısı * bugüne kadar olan gün sayısı
+    const totalPossible = habits.length * daysSoFar;
     const successRate = totalPossible > 0 ? Math.round((monthlyCompletions.length / totalPossible) * 100) : 0;
     
-    // En uzun streak hesapla
+    // En uzun aktif streak hesapla
     const allStreaks = habits.map(h => {
       const habitComps = completions.filter(c => c.habitId === h.id);
       return calculateStreak(habitComps);
@@ -71,11 +80,13 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
     setMotivationMessage(randomMessage);
   }, []);
 
-  const handleToggleCompletion = (habitId: string, date?: string) => {
+  const handleToggleCompletion = async (habitId: string, date?: string) => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     toggleCompletion(habitId, date);
   };
 
-  const handleLongPress = (habitId: string, habitName: string) => {
+  const handleLongPress = async (habitId: string, habitName: string) => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     Alert.alert(
       'Alışkanlık İşlemleri',
       habitName,
@@ -87,7 +98,7 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
         {
           text: 'Sil',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             Alert.alert(
               'Emin misiniz?',
               'Bu alışkanlığı ve tüm geçmişini silmek istediğinizden emin misiniz?',
@@ -96,7 +107,10 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
                 {
                   text: 'Evet, Sil',
                   style: 'destructive',
-                  onPress: () => deleteHabit(habitId),
+                  onPress: async () => {
+                    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    deleteHabit(habitId);
+                  },
                 },
               ]
             );
@@ -106,7 +120,8 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
     );
   };
 
-  const handleAddHabit = () => {
+  const handleAddHabit = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setModalVisible(true);
   };
 
@@ -119,11 +134,160 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
     });
   };
 
+  const renderRightActions = (
+    habitId: string, 
+    habitColor: string,
+    progress: Animated.AnimatedInterpolation<number>,
+    dragX: Animated.AnimatedInterpolation<number>
+  ) => {
+    const trans = dragX.interpolate({
+      inputRange: [-100, 0],
+      outputRange: [0, 100],
+      extrapolate: 'clamp',
+    });
+    
+    return (
+      <Animated.View
+        style={[
+          styles.swipeAction,
+          {
+            transform: [{ translateX: trans }],
+            backgroundColor: habitColor,
+          },
+        ]}
+      >
+        <Text style={styles.swipeActionText}>✓</Text>
+      </Animated.View>
+    );
+  };
+
+  const renderHabitItem = useCallback(({ item }: { item: typeof habitsWithCompletions[0] }) => (
+    <Swipeable
+      renderRightActions={(progress, dragX) => 
+        renderRightActions(item.id, item.color, progress, dragX)
+      }
+      onSwipeableOpen={() => handleToggleCompletion(item.id)}
+      overshootRight={false}
+      rightThreshold={40}
+    >
+      <TouchableOpacity
+        style={styles.habitCard}
+        onLongPress={() => handleLongPress(item.id, item.name)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.habitHeader}>
+          <View style={styles.habitLeft}>
+            <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
+              <Text style={styles.habitIcon}>{item.icon}</Text>
+            </View>
+            <View style={styles.habitInfo}>
+              <Text style={styles.habitName}>{item.name}</Text>
+              <Text style={styles.habitGoal}>Her gün</Text>
+            </View>
+          </View>
+          <View style={styles.habitRight}>
+            <Text style={[styles.habitStreak, { color: item.color }]}>
+              {item.currentStreak}
+            </Text>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleLongPress(item.id, item.name)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              activeOpacity={0.6}
+            >
+              <Text style={styles.deleteButtonIcon}>×</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Haftalık Grid */}
+        <View style={styles.weekGridContainer}>
+          <View style={styles.weekGrid}>
+            {Array.from({ length: 14 }).map((_, index) => {
+              const date = new Date();
+              date.setDate(date.getDate() - (13 - index));
+              const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+              const isCompleted = item.completions.some(c => c.date === dateStr && c.completed);
+              const isToday = index === 13;
+              // Son 3 gün düzenlenebilir (index 11, 12, 13)
+              const isEditable = index >= 10;
+              
+              return (
+                <View key={index} style={styles.gridItemWrapper}>
+                  <TouchableOpacity
+                    style={[
+                      styles.gridSquare,
+                      isCompleted ? { backgroundColor: item.color } : styles.gridSquareEmpty,
+                      isToday && styles.gridSquareToday,
+                      isEditable && !isToday && styles.gridSquareEditable,
+                    ]}
+                    onPress={() => {
+                      if (isEditable) {
+                        handleToggleCompletion(item.id, dateStr);
+                      }
+                    }}
+                    disabled={!isEditable}
+                  />
+                  {isToday && <Text style={styles.todayIndicator}>Bugün</Text>}
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Swipeable>
+  ), [handleToggleCompletion, handleLongPress]);
+
+  const renderListHeader = useCallback(() => (
+    <>
+      {/* Aylık Başarı Kartı */}
+      <View style={styles.statsCard}>
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>Aylık Başarı</Text>
+          <Text style={styles.statValue}>{monthlyStats.successRate}%</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>Zincir</Text>
+          <Text style={styles.statValue}>{monthlyStats.longestStreak} Gün</Text>
+        </View>
+      </View>
+    </>
+  ), [monthlyStats]);
+
+  const renderEmptyComponent = useCallback(() => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyIcon}>🎯</Text>
+      <Text style={styles.emptyTitle}>Henüz alışkanlık yok</Text>
+      <Text style={styles.emptySubtitle}>
+        İlk alışkanlığını eklemek için{'\n'}yukarıdaki + butonuna bas
+      </Text>
+    </View>
+  ), []);
+
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background.secondary} />
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.todayLabel}>BUGÜN</Text>
+          <View style={styles.headerRow}>
+            <Text style={styles.dateText}>{formatDate(new Date())}</Text>
+            <View style={styles.addButton}>
+              <Text style={styles.addButtonText}>+</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.loadingContainer}>
+          <StatsCardSkeleton />
+          <HabitCardSkeleton />
+          <HabitCardSkeleton />
+          <HabitCardSkeleton />
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -142,103 +306,20 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
         </View>
       </View>
 
-      <ScrollView 
-        style={styles.scrollView}
+      <FlatList
+        data={habitsWithCompletions}
+        renderItem={renderHabitItem}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={renderEmptyComponent}
         showsVerticalScrollIndicator={false}
-      >
-        {/* Aylık Başarı Kartı */}
-        <View style={styles.statsCard}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Aylık Başarı</Text>
-            <Text style={styles.statValue}>{monthlyStats.successRate}%</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Zincir</Text>
-            <Text style={styles.statValue}>{monthlyStats.longestStreak} Gün</Text>
-          </View>
-        </View>
-
-        {/* Alışkanlık Listesi */}
-        {habitsWithCompletions.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🎯</Text>
-            <Text style={styles.emptyTitle}>Henüz alışkanlık yok</Text>
-            <Text style={styles.emptySubtitle}>
-              İlk alışkanlığını eklemek için{'\n'}yukarıdaki + butonuna bas
-            </Text>
-          </View>
-        ) : (
-          habitsWithCompletions.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.habitCard}
-              onLongPress={() => handleLongPress(item.id, item.name)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.habitHeader}>
-                <View style={styles.habitLeft}>
-                  <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
-                    <Text style={styles.habitIcon}>{item.icon}</Text>
-                  </View>
-                  <View style={styles.habitInfo}>
-                    <Text style={styles.habitName}>{item.name}</Text>
-                    <Text style={styles.habitGoal}>Her gün</Text>
-                  </View>
-                </View>
-                <View style={styles.habitRight}>
-                  <Text style={[styles.habitStreak, { color: item.color }]}>
-                    {item.currentStreak}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleLongPress(item.id, item.name)}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    activeOpacity={0.6}
-                  >
-                    <Text style={styles.deleteButtonIcon}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Haftalık Grid */}
-              <View style={styles.weekGridContainer}>
-                <View style={styles.weekGrid}>
-                  {Array.from({ length: 14 }).map((_, index) => {
-                    const date = new Date();
-                    date.setDate(date.getDate() - (13 - index));
-                    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                    const isCompleted = item.completions.some(c => c.date === dateStr && c.completed);
-                    const isToday = index === 13;
-                    // Son 3 gün düzenlenebilir (index 11, 12, 13)
-                    const isEditable = index >= 11;
-                    
-                    return (
-                      <View key={index} style={styles.gridItemWrapper}>
-                        <TouchableOpacity
-                          style={[
-                            styles.gridSquare,
-                            isCompleted ? { backgroundColor: item.color } : styles.gridSquareEmpty,
-                            isToday && styles.gridSquareToday,
-                            isEditable && !isToday && styles.gridSquareEditable,
-                          ]}
-                          onPress={() => {
-                            if (isEditable) {
-                              handleToggleCompletion(item.id, dateStr);
-                            }
-                          }}
-                          disabled={!isEditable}
-                        />
-                        {isToday && <Text style={styles.todayIndicator}>Bugün</Text>}
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))
-        )}
-      </ScrollView>
+        removeClippedSubviews
+        maxToRenderPerBatch={5}
+        updateCellsBatchingPeriod={50}
+        initialNumToRender={5}
+        windowSize={5}
+        contentContainerStyle={styles.flatListContent}
+      />
       
       <AddHabitModal
         visible={modalVisible}
