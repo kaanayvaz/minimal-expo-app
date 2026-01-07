@@ -71,8 +71,8 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
     setMotivationMessage(randomMessage);
   }, []);
 
-  const handleToggleCompletion = (habitId: string) => {
-    toggleCompletion(habitId);
+  const handleToggleCompletion = (habitId: string, date?: string) => {
+    toggleCompletion(habitId, date);
   };
 
   const handleLongPress = (habitId: string, habitName: string) => {
@@ -210,6 +210,8 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
                     const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                     const isCompleted = item.completions.some(c => c.date === dateStr && c.completed);
                     const isToday = index === 13;
+                    // Son 3 gün düzenlenebilir (index 11, 12, 13)
+                    const isEditable = index >= 11;
                     
                     return (
                       <View key={index} style={styles.gridItemWrapper}>
@@ -218,13 +220,14 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
                             styles.gridSquare,
                             isCompleted ? { backgroundColor: item.color } : styles.gridSquareEmpty,
                             isToday && styles.gridSquareToday,
+                            isEditable && !isToday && styles.gridSquareEditable,
                           ]}
                           onPress={() => {
-                            // Gelecekte: Geçmiş günleri düzenleme özelliği
-                            if (isToday) {
-                              handleToggleCompletion(item.id);
+                            if (isEditable) {
+                              handleToggleCompletion(item.id, dateStr);
                             }
                           }}
+                          disabled={!isEditable}
                         />
                         {isToday && <Text style={styles.todayIndicator}>Bugün</Text>}
                       </View>

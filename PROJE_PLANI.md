@@ -127,13 +127,18 @@ Large:  elevation: 8
 ```
 
 **Özellikler:**
-- Mini haftalık grid (7 gün)
+- Mini haftalık grid (14 günlük görünüm)
 - Swipe-to-complete (saga kaydır = bugün tamamla)
+- Geriye yönelik düzenleme (son 3 gün tıklanabilir - unutulan günler için)
 - Long press = düzenle/sil menüsü
 - Tap = detay sayfası
 
+**Free Özellik:**
+- Son 3 günde geriye yönelik düzenleme
+
 **Premium Özellik:**
 - Sınırsız alışkanlık (Free: max 3)
+- Geçmişe sınırsız düzenleme (tüm geçmiş günler)
 - Kategori oluşturma ve filtreleme
 
 ---
@@ -253,7 +258,7 @@ Large:  elevation: 8
 ### 🆓 Ücretsiz Sürüm
 - **Alışkanlık Sayısı:** Maksimum 3 alışkanlık
 - **Temel istatistikler:** Son 30 gün
-- **Geçmişe düzenleme:** 7 gün geriye
+- **Geçmişe düzenleme:** Son 3 gün geriye (grid'de)
 - **Bildirimler:** Günlük hatırlatma
 - **Tema:** Açık/Koyu
 - **Yedekleme:** Manuel yedekleme (export)
@@ -414,9 +419,10 @@ myapp/
 - ✅ Alışkanlık CRUD işlemleri
 - ✅ Ana ekran UI (HomeScreen)
 - ✅ Alışkanlık kartları (HabitCard)
-- ✅ Haftalık mini grid görünümü
+- ✅ Haftalık mini grid görünümü (14 günlük)
 - ✅ Streak hesaplama sistemi
 - ✅ Günlük check-in/toggle işlevi
+- ✅ Geriye yönelik düzenleme (son 3 gün grid'de tıklanabilir)
 - ✅ Test verileri (testData.ts) - Otomatik yükleme
 - ✅ Tarih utility fonksiyonları
 - ✅ Temel UI komponentleri (Button, Card, Input, FAB, Modal)
@@ -428,13 +434,14 @@ myapp/
 - 🔄 Takvim ekranı interaktif hale getirme
 
 ### 📝 Yapılacaklar (Öncelik Sırasına Göre)
-1. **Alışkanlık Ekleme Modal'ı** - Kullanıcı yeni alışkanlık ekleyebilmeli
+1. ~~**Alışkanlık Ekleme Modal'ı**~~ - ✅ Tamamlandı
 2. **Temel Animasyonlar** - Check animasyonları ve geçişler
 3. **İstatistik Ekranı** - Grafikler ve analitikler
 4. **Takvim Ekranı** - Aylık görünüm ve interaksiyon
 5. **Bildirim Sistemi** - Günlük hatırlatmalar
 6. **Tema Sistemi** - Açık/Koyu mod
 7. **Haptic Feedback** - Dokunsal geri bildirim
+8. **Gelişmiş Geriye Düzenleme** - Takvim ekranından geçmişe sınırsız erişim (Premium)
 
 ---
 
@@ -451,7 +458,8 @@ myapp/
 - [x] Ana ekran UI (alışkanlık listesi)
 - [x] Basit daily check-in sistemi
 - [x] Streak hesaplama algoritması
-- [x] Haftalık mini grid görünümü
+- [x] Haftalık mini grid görünümü (14 günlük)
+- [x] Geriye yönelik düzenleme (son 3 gün)
 - [x] Alışkanlık ekleme modal'ı (AddHabitModal)
 - [x] Test verileri otomatik yükleme
 - [ ] Temel animasyonlar (check animasyonu, geçişler)
@@ -465,8 +473,9 @@ myapp/
 ### Phase 2: Core Features (2 Hafta) 🔄
 **Hedef:** Tüm ana özellikler tamamlanmış
 
-- [x] Mini takvim grid'leri (haftalık görünüm)
+- [x] Mini takvim grid'leri (haftalık görünüm - 14 günlük)
 - [x] Streak hesaplama algoritması
+- [x] Geriye yönelik düzenleme (son 3 gün)
 - [x] Temel ekran yapıları (Home, Stats, Calendar, Settings)
 - [ ] İstatistik ekranı (grafikler ve analitikler)
 - [ ] Takvim ekranı (aylık görünüm - interaktif)
@@ -478,7 +487,7 @@ myapp/
 
 **Çıktı:** Tam işlevsel habit tracker.
 
-**Tamamlanma Durumu:** %40
+**Tamamlanma Durumu:** %45
 
 ---
 
@@ -877,6 +886,24 @@ Bu proje planı ile:
 
 ---
 
+### 7 Ocak 2025 - Saat 22:00
+**Eklenen Özellik:** Geriye Yönelik Grid Düzenleme
+**Açıklama:** Kullanıcılar artık son 3 günde geriye dönük değişiklik yapabilir. Grid'deki son 3 gün (bugün dahil) tıklanabilir ve o günün tamamlama durumu değiştirilebilir.
+
+**Değişiklikler:**
+- `HomeScreen.tsx`: Son 3 günü tıklanabilir hale getiren `isEditable` kontrolü eklendi
+- `handleToggleCompletion` fonksiyonu artık tarih parametresi alıyor
+- `toggleCompletion` store fonksiyonu zaten tarih parametresi destekliyordu
+- Görsel geri bildirim için `gridSquareEditable` stili eklendi
+
+**Dosyalar:**
+- `src/screens/HomeScreen.tsx`
+- `src/screens/HomeScreen.styles.ts`
+
+**Durum:** ✅ Tamamlandı
+
+---
+
 ### 7 Ocak 2025 - Saat 19:00
 **Sorun:** "Maximum update depth exceeded" hatası  
 **Neden:** `HomeScreen.tsx` içinde `useHabitStore` selector'ında `getAllHabitsWithCompletions()` fonksiyonu her render'da yeni bir array döndürüyordu, bu da sonsuz render döngüsü yaratıyordu.
@@ -903,5 +930,5 @@ const habitsWithCompletions = useMemo(() => {
 ---
 
 *Oluşturma Tarihi: 7 Ocak 2025*  
-*Son Güncelleme: 7 Ocak 2025*  
-*Versiyon: 1.1*
+*Son Güncelleme: 7 Ocak 2025 - Saat 22:00*  
+*Versiyon: 1.2*

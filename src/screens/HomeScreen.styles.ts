@@ -189,6 +189,11 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
+  gridSquareEditable: {
+    borderWidth: 1,
+    borderColor: COLORS.primary + '40',
+    opacity: 0.9,
+  },
   todayIndicator: {
     fontSize: 9,
     color: COLORS.primary,
